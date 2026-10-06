@@ -9,6 +9,7 @@ IoT 센서 기반 스마트 쓰레기통 적재량 모니터링 및 수거 경�
 | 개발 기간 | 2026.03 ~ |
 | 개발 인원 | 4명 |
 | 담당 역할 | **백엔드 개발** (Spring Boot REST API, JPA 엔티티 설계, DB 스키마 설계, 서버 DB 연동) |
+| 서비스 주소 | https://codedbyjun.dev/bingo |
 | 배포 | Raspberry Pi 홈서버 + Nginx 리버스 프록시 |
 
 <br>
@@ -24,7 +25,8 @@ IoT 센서 기반 스마트 쓰레기통 적재량 모니터링 및 수거 경�
 | Database | MySQL / MariaDB, SQL (DDL · DML) |
 | Build | Gradle |
 | Library | Lombok |
-| Tool | Postman, Git / GitHub, Eclipse (STS) |
+| Test | JUnit 5, H2 (테스트용 인메모리 DB) |
+| Tool | Postman, Docker, Git / GitHub, Eclipse (STS) |
 
 ### 프로젝트 전체
 
@@ -51,7 +53,7 @@ IoT 센서 기반 스마트 쓰레기통 적재량 모니터링 및 수거 경�
 - 엔티티에 Setter를 두지 않고 생성자와 `update()` 메서드로만 값을 변경하도록 하여 **객체 상태 변경 지점을 제한**했습니다.
 
 ### 3. DB 스키마 설계
-- 6개 테이블의 스키마와 외래키 관계를 설계하고, 테이블 생성 · 테스트 데이터 삽입 · 수정 · 삭제 SQL 스크립트를 작성했습니다.
+- 7개 테이블의 스키마와 외래키 관계를 설계하고, 테이블 생성 · 테스트 데이터 삽입 · 수정 · 삭제 SQL 스크립트를 작성했습니다.
 - 로컬 개발용 테스트 SQL을 분리하여 로컬 DB와 배포 서버 DB 환경을 구분해 테스트했습니다.
 
 ### 4. REST API 개발
@@ -59,6 +61,7 @@ IoT 센서 기반 스마트 쓰레기통 적재량 모니터링 및 수거 경�
 - 쓰레기통 · 센서 로그 · 상태 로그 · 수거 경로 · 수거 이력 조회 API와 센서 데이터 수신 API를 구현했습니다.
 - 프론트엔드에서 API를 호출할 수 있도록 **CORS 설정**(`WebMvcConfigurer`)을 추가했습니다.
 - 모든 API는 Postman으로 요청 · 응답을 검증했습니다.
+- 연관 엔티티를 그대로 직렬화할 때 발생한 **지연 로딩 프록시 직렬화 오류(500)**를 연관 엔티티는 `@JsonIgnore`로 숨기고 ID만 노출하는 방식으로 해결했습니다.
 
 ### 5. 배포 서버 DB 연동
 - 도메인 서버의 DB와 Spring Boot 애플리케이션을 연동하고, 데이터 삽입 · 삭제를 테스트했습니다.
@@ -74,21 +77,24 @@ IoT 센서 기반 스마트 쓰레기통 적재량 모니터링 및 수거 경�
 
 <br>
 
-## API 명세 (담당 구현)
+## API 명세
 
 | Method | URI | 설명 |
 |---|---|---|
-| POST | `/api/worker/signup` | 작업자 회원가입 |
-| GET | `/api/worker` | 작업자 전체 조회 |
-| GET | `/api/worker/{id}` | 작업자 단건 조회 |
-| PUT | `/api/worker/{id}` | 작업자 정보 수정 |
-| DELETE | `/api/worker/{id}` | 작업자 삭제 |
+| POST | `/api/users` | 작업자 회원가입 |
+| GET | `/api/users` | 작업자 전체 조회 |
+| GET | `/api/users/{id}` | 작업자 단건 조회 |
+| PUT | `/api/users/{id}` | 작업자 정보 수정 |
+| DELETE | `/api/users/{id}` | 작업자 삭제 |
+| POST | `/api/auth/login` | 로그인 (세션) |
 | GET | `/api/trashcan`, `/api/trashcan/{id}` | 쓰레기통 조회 |
 | POST | `/api/sensor/log` | 센서 적재량 데이터 수신 |
 | GET | `/api/sensor`, `/api/sensor/{canId}` | 센서 로그 조회 |
 | GET | `/api/status`, `/api/status/{canId}` | 쓰레기통 상태 변경 로그 조회 |
 | GET | `/api/route`, `/api/route/{id}`, `/api/route/worker/{workerId}` | 수거 경로 조회 |
 | GET | `/api/history`, `/api/history/route/{routeId}`, `/api/history/can/{canId}` | 수거 이력 조회 |
+
+모든 API는 context-path `/bingo` 하위에서 제공됩니다. (예: `http://localhost:8081/bingo/api/trashcan`)
 
 <br>
 
@@ -99,6 +105,7 @@ erDiagram
     TRASH_CAN ||--o{ SENSOR_LOG : "적재량 기록"
     TRASH_CAN ||--o{ CAN_STATUS_LOG : "상태 변경"
     TRASH_CAN ||--o{ COLLECTION_HISTORY : "수거됨"
+    TRASH_CAN ||--o{ EMPTY_HISTORY : "비움 감지"
     USERS ||--o{ COLLECTION_ROUTE : "배정"
     COLLECTION_ROUTE ||--o{ COLLECTION_HISTORY : "포함"
 
@@ -133,10 +140,18 @@ erDiagram
     }
     COLLECTION_ROUTE {
         bigint id PK
-        bigint user_id FK
+        bigint worker_id FK
         json optimized_path
         double total_distance
         datetime created_at
+    }
+    EMPTY_HISTORY {
+        bigint id PK
+        bigint can_id FK
+        float before_level
+        float after_level
+        datetime emptied_at
+        varchar note
     }
     COLLECTION_HISTORY {
         bigint id PK
@@ -208,7 +223,7 @@ flowchart LR
 
 - 비밀번호를 `BCryptPasswordEncoder`로 암호화하여 저장
 - `RuntimeException` 대신 커스텀 예외와 `@RestControllerAdvice`로 예외 처리 및 에러 응답 통일
-- 엔티티를 직접 반환하지 않고 응답 DTO로 변환하여 API 스펙과 엔티티 분리
+- 엔티티를 직접 반환하지 않고 응답 DTO로 변환하여 API 스펙과 엔티티 분리 (작업자 조회 시 비밀번호 노출 방지)
 - 요청 DTO에 `@Valid` 기반 입력값 검증 추가
 - CORS 허용 Origin을 서비스 도메인으로 제한
 
@@ -216,13 +231,30 @@ flowchart LR
 
 ## 실행 방법
 
+**요구 사항** : JDK 17, Docker
+
 ```bash
+# 1. DB 실행 (MariaDB + 스키마 · 샘플 데이터 자동 적재)
+docker compose up -d
+
+# 2. 설정 파일 생성
 cd backend-spring
 cp src/main/resources/application.properties.example src/main/resources/application.properties
+
+# 3. 서버 실행
 ./gradlew bootRun
 ```
 
-실행 전 `DB_PASSWORD`, `KAKAO_MAP_KEY`, `KAKAO_REST_API_KEY` 환경변수를 설정해야 합니다.
+http://localhost:8081/bingo 접속 후 아래 계정으로 로그인합니다.
+
+| 구분 | 아이디 | 비밀번호 |
+|---|---|---|
+| 관리자 | admin | admin1234 |
+| 작업자 | worker1 | worker1234 |
+
+- Docker 없이 실행할 경우 MariaDB(또는 MySQL)에 `bingo` DB를 만들고 `backend-spring/sql/schema.sql`, `data.sql`을 순서대로 실행한 뒤, `DB_URL` · `DB_USERNAME` · `DB_PASSWORD` 환경변수로 접속 정보를 지정합니다.
+- 지도 · 경로 안내 기능을 사용하려면 `KAKAO_MAP_KEY`, `KAKAO_REST_API_KEY` 환경변수를 설정합니다. 키가 없어도 나머지 기능은 정상 동작합니다.
+- 테스트는 H2 인메모리 DB로 실행되어 별도 DB 없이 `./gradlew test`로 확인할 수 있습니다.
 
 <br>
 

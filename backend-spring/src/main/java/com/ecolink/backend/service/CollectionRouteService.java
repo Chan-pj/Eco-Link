@@ -17,7 +17,7 @@ public class CollectionRouteService {
     }
 
     public List<CollectionRoute> findByWorkerId(Long workerId) {
-        return collectionRouteRepository.findByWorkerId(workerId);
+        return collectionRouteRepository.findByWorker_Id(workerId);
     }
 
     public CollectionRoute findById(Long id) {

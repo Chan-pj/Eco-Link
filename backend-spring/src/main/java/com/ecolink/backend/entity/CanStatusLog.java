@@ -1,5 +1,7 @@
 package com.ecolink.backend.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,9 +17,15 @@ public class CanStatusLog {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "can_id", nullable = false)
     private TrashCan trashCan;
+
+    @JsonProperty("canId")
+    public Long getCanId() {
+        return trashCan != null ? trashCan.getId() : null;
+    }
 
     @Column(name = "prev_status", length = 50)
     private String prevStatus;

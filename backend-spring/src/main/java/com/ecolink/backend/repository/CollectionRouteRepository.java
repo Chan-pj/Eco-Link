@@ -5,5 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface CollectionRouteRepository extends JpaRepository<CollectionRoute, Long> {
-    List<CollectionRoute> findByWorkerId(Long workerId);
+    List<CollectionRoute> findByWorker_Id(Long workerId);
 }
