@@ -1,52 +1,154 @@
 # EcoLink BinGo
 
-**IoT/AI 기반 스마트 쓰레기통 수거 최적화 시스템**
+IoT 센서 기반 스마트 쓰레기통 적재량 모니터링 및 수거 경로 최적화 시스템
 
-라즈베리파이와 초음파 센서로 쓰레기통 적재량을 실시간 수집하고, 위치 특화 자기학습 AI 모델로 수거 시점을 예측하여 최적 수거 경로를 안내하는 팀 프로젝트입니다. 한국폴리텍대학 벤처창업아이템 경진대회 출품을 목표로 개발 중입니다.
+초음파 센서로 쓰레기통 적재량을 실시간 수집하고, AI 모델로 만적 시점을 예측하여 수거가 필요한 쓰레기통만 최적 경로로 수거하도록 돕는 웹 서비스입니다.
 
----
-
-## 스크린샷
-
-| 대시보드 | 수거 경로 안내 |
+| 항목 | 내용 |
 |---|---|
-| ![dashboard](docs/images/dashboard.jpg) | ![route](docs/images/route.jpg) |
+| 개발 기간 | 2026.03 ~ |
+| 개발 인원 | 4명 |
+| 담당 역할 | **백엔드 개발** (Spring Boot REST API, JPA 엔티티 설계, DB 스키마 설계, 서버 DB 연동) |
+| 배포 | Raspberry Pi 홈서버 + Nginx 리버스 프록시 |
 
----
+<br>
 
-## 프로젝트 개요
+## 기술 스택
 
-기존 정기 순회 방식의 쓰레기통 수거는 불필요한 출동과 과적재를 동시에 유발합니다. BinGo는 초음파 센서(HC-SR04)로 쓰레기통 적재량을 실시간 수집하고, 위치별로 자기학습하는 AI 모델이 다음 만적 시점을 예측하여 수거 인력이 필요한 시점에만 최적 경로로 출동하도록 돕습니다. 탄소 감축 효과를 정량화하고, 향후 지자체·업체 연동을 위한 개방형 API 플랫폼으로 확장하는 것을 목표로 합니다.
+### 담당 영역
 
-- **개발 기간**: 진행 중 (팀 프로젝트, 경진대회 출품 준비)
-- **배포 환경**: 라즈베리파이 홈서버 (`codedbyjun.dev/bingo`)
-- **팀 구성**: 전영준(팀장 · AI/프론트엔드), 강대웅, 박승국, 허찬
-- **지도교수**: 고호정
-- **경진대회**: 한국폴리텍대학 벤처창업아이템 경진대회
+| 분류 | 기술 |
+|---|---|
+| Language | Java 17 |
+| Framework | Spring Boot 3.5, Spring Web, Spring Data JPA (Hibernate) |
+| Database | MySQL / MariaDB, SQL (DDL · DML) |
+| Build | Gradle |
+| Library | Lombok |
+| Tool | Postman, Git / GitHub, Eclipse (STS) |
 
----
+### 프로젝트 전체
 
-## 담당 역할 (허찬)
+| 분류 | 기술 |
+|---|---|
+| Backend | Spring Boot, FastAPI |
+| AI | Python, scikit-learn (RandomForest Classifier / Regressor) |
+| Frontend | HTML, CSS, JavaScript, Chart.js, Kakao Map API |
+| IoT | Arduino, HC-SR04 초음파 센서, Raspberry Pi |
+| Infra | Nginx, systemd, Raspberry Pi |
+| External API | Kakao Mobility API (경로 최적화) |
 
-- **백엔드 기본 구조 설계** — 엔티티 · 리포지터리 · 서비스 · 컨트롤러 계층 구조 작성
-- **DB 스키마 / 테스트 데이터** — `sql/` 테이블 생성 및 테스트 데이터 스크립트 작성
-- **도메인 서버 연동** — 배포 서버 DB 연동 및 삽입 · 삭제 테스트
-- **회원가입 API** — Worker 엔티티를 `users` 테이블에 매핑, 회원가입 API 구현
-- **작업자(Worker) CRUD API** — 작업자 등록 · 조회 · 수정 · 삭제 API 구현 및 Postman 테스트
-- **프론트엔드 연동** — 프론트엔드 파일과 백엔드 연동
+<br>
 
----
+## 담당 업무
 
-## 로컬 실행 방법
+### 1. 백엔드 계층 구조 설계 및 구현
+- Controller · Service · Repository로 역할을 분리한 **레이어드 아키텍처**로 백엔드 기본 구조를 설계했습니다.
+- 쓰레기통, 센서 로그, 상태 변경 로그, 수거 경로, 수거 이력, 작업자 등 **6개 도메인의 엔티티 · 리포지터리 · 서비스 · 컨트롤러**를 작성했습니다.
 
-```bash
-cd backend-spring
-cp src/main/resources/application.properties.example src/main/resources/application.properties
+### 2. JPA 엔티티 및 연관관계 매핑
+- `@ManyToOne(fetch = LAZY)` + `@JoinColumn`으로 외래키 관계를 매핑하고, `@OneToMany(mappedBy)`로 양방향 연관관계를 구성했습니다.
+- 양방향 관계를 JSON으로 직렬화할 때 발생하는 **순환 참조 문제를 `@JsonIgnore`로 해결**했습니다.
+- 엔티티에 Setter를 두지 않고 생성자와 `update()` 메서드로만 값을 변경하도록 하여 **객체 상태 변경 지점을 제한**했습니다.
+
+### 3. DB 스키마 설계
+- 6개 테이블의 스키마와 외래키 관계를 설계하고, 테이블 생성 · 테스트 데이터 삽입 · 수정 · 삭제 SQL 스크립트를 작성했습니다.
+- 로컬 개발용 테스트 SQL을 분리하여 로컬 DB와 배포 서버 DB 환경을 구분해 테스트했습니다.
+
+### 4. REST API 개발
+- 작업자 **회원가입 및 CRUD API**를 구현했습니다. 요청 데이터는 DTO(`SignUpRequest`)로 받아 엔티티와 분리했습니다.
+- 쓰레기통 · 센서 로그 · 상태 로그 · 수거 경로 · 수거 이력 조회 API와 센서 데이터 수신 API를 구현했습니다.
+- 프론트엔드에서 API를 호출할 수 있도록 **CORS 설정**(`WebMvcConfigurer`)을 추가했습니다.
+- 모든 API는 Postman으로 요청 · 응답을 검증했습니다.
+
+### 5. 배포 서버 DB 연동
+- 도메인 서버의 DB와 Spring Boot 애플리케이션을 연동하고, 데이터 삽입 · 삭제를 테스트했습니다.
+
+### 주요 코드
+| 구분 | 파일 |
+|---|---|
+| 작업자 API | [WorkerController.java](https://github.com/Chan-pj/Eco-Link/blob/heochan/backend-spring/src/main/java/com/ecolink/backend/controller/WorkerController.java) · [WorkerService.java](https://github.com/Chan-pj/Eco-Link/blob/heochan/backend-spring/src/main/java/com/ecolink/backend/service/WorkerService.java) |
+| 엔티티 | [Worker.java](https://github.com/Chan-pj/Eco-Link/blob/heochan/backend-spring/src/main/java/com/ecolink/backend/entity/Worker.java) · [CollectionHistory.java](https://github.com/Chan-pj/Eco-Link/blob/heochan/backend-spring/src/main/java/com/ecolink/backend/entity/CollectionHistory.java) · [CollectionRoute.java](https://github.com/Chan-pj/Eco-Link/blob/heochan/backend-spring/src/main/java/com/ecolink/backend/entity/CollectionRoute.java) |
+| 요청 DTO | [SignUpRequest.java](https://github.com/Chan-pj/Eco-Link/blob/heochan/backend-spring/src/main/java/com/ecolink/backend/dto/SignUpRequest.java) |
+| 설정 | [CorsConfig.java](https://github.com/Chan-pj/Eco-Link/blob/heochan/backend-spring/src/main/java/com/ecolink/backend/config/CorsConfig.java) |
+| DB 스키마 | [schema.sql](https://github.com/Chan-pj/Eco-Link/blob/heochan/backend-spring/sql/schema.sql) |
+
+<br>
+
+## API 명세 (담당 구현)
+
+| Method | URI | 설명 |
+|---|---|---|
+| POST | `/api/worker/signup` | 작업자 회원가입 |
+| GET | `/api/worker` | 작업자 전체 조회 |
+| GET | `/api/worker/{id}` | 작업자 단건 조회 |
+| PUT | `/api/worker/{id}` | 작업자 정보 수정 |
+| DELETE | `/api/worker/{id}` | 작업자 삭제 |
+| GET | `/api/trashcan`, `/api/trashcan/{id}` | 쓰레기통 조회 |
+| POST | `/api/sensor/log` | 센서 적재량 데이터 수신 |
+| GET | `/api/sensor`, `/api/sensor/{canId}` | 센서 로그 조회 |
+| GET | `/api/status`, `/api/status/{canId}` | 쓰레기통 상태 변경 로그 조회 |
+| GET | `/api/route`, `/api/route/{id}`, `/api/route/worker/{workerId}` | 수거 경로 조회 |
+| GET | `/api/history`, `/api/history/route/{routeId}`, `/api/history/can/{canId}` | 수거 이력 조회 |
+
+<br>
+
+## ERD
+
+```mermaid
+erDiagram
+    TRASH_CAN ||--o{ SENSOR_LOG : "적재량 기록"
+    TRASH_CAN ||--o{ CAN_STATUS_LOG : "상태 변경"
+    TRASH_CAN ||--o{ COLLECTION_HISTORY : "수거됨"
+    USERS ||--o{ COLLECTION_ROUTE : "배정"
+    COLLECTION_ROUTE ||--o{ COLLECTION_HISTORY : "포함"
+
+    TRASH_CAN {
+        bigint id PK
+        varchar loc_name
+        double loc_lat
+        double loc_lng
+        int max_capa
+    }
+    SENSOR_LOG {
+        bigint id PK
+        bigint can_id FK
+        int fill_level
+        int battery_level
+        datetime log_time
+    }
+    CAN_STATUS_LOG {
+        bigint id PK
+        bigint can_id FK
+        varchar prev_status
+        varchar curr_status
+        varchar reason
+        datetime changed_at
+    }
+    USERS {
+        bigint id PK
+        varchar username UK
+        varchar password
+        int grade
+        varchar vehicle_number
+    }
+    COLLECTION_ROUTE {
+        bigint id PK
+        bigint user_id FK
+        json optimized_path
+        double total_distance
+        datetime created_at
+    }
+    COLLECTION_HISTORY {
+        bigint id PK
+        bigint route_id FK
+        bigint can_id FK
+        int before_level
+        int after_level
+        datetime collected_at
+    }
 ```
 
-`DB_PASSWORD`, `KAKAO_MAP_KEY`, `KAKAO_REST_API_KEY` 환경변수를 설정한 뒤 `./gradlew bootRun` 으로 실행합니다.
-
----
+<br>
 
 ## 시스템 아키텍처
 
@@ -77,81 +179,53 @@ flowchart LR
     D --> G
 ```
 
-### 데이터 흐름
-1. **센서 수집**: 쓰레기통(Can ID 1)에 부착된 HC-SR04 초음파 센서가 Arduino를 통해 적재량 데이터를 주기적으로 전송 (Can ID 3~7은 목업 데이터로 시뮬레이션)
-2. **이벤트 감지**: 적재량이 30% 이상 급락하는 패턴을 자동 감지해 수거 이벤트로 기록 (`empty_history` 테이블)
-3. **백엔드 처리**: Spring Boot(`:8081`, context-path `/bingo`)가 센서 로그를 MariaDB에 저장하고 REST API로 제공
-4. **AI 추론**: FastAPI(`:8000`)가 축적된 데이터로 RandomForestClassifier(만적 여부 분류)와 RandomForestRegressor(만적까지 남은 시간 예측)를 수행, 주 1회 주기적 재학습 진행
-5. **경로 최적화**: 수거가 필요한 쓰레기통을 기준으로 Kakao Mobility API를 연동해 최적 수거 경로와 턴바이턴 내비게이션 제공
-6. **시각화**: 웹 대시보드가 적재 추이, 예측 결과, 수거 경로를 실시간으로 표시
+1. 쓰레기통에 부착된 초음파 센서가 Arduino를 통해 적재량 데이터를 Spring Boot 서버로 전송합니다.
+2. Spring Boot 서버가 센서 데이터를 DB에 저장하고 REST API로 제공합니다.
+3. FastAPI AI 서버가 누적 데이터로 만적 여부와 만적까지 남은 시간을 예측합니다.
+4. 수거가 필요한 쓰레기통을 기준으로 Kakao Mobility API를 통해 최적 수거 경로를 안내합니다.
 
----
+<br>
 
 ## 주요 기능
 
-- **실시간 적재량 모니터링** — 쓰레기통별 적재량 추이를 그래프로 시각화 (`trend.html`)
-- **위치 특화 자기학습 AI** — RandomForest 기반 만적 여부 분류(정확도 99.57%) 및 만적 시점 예측(MAE 1.13h, R² 0.7748)
-- **수거 경로 최적화** — Kakao Mobility API로 수거 필요 쓰레기통 기준 최적 경로 및 턴바이턴 안내 (`route.html`)
-- **자동 수거 이벤트 감지** — 적재량 급락 패턴 기반 수거 완료 자동 기록
-- **탄소 감축 정량화** — 불필요한 출동 감소분을 기반으로 탄소 절감 효과 산출
-- **개방형 API 플랫폼(예정)** — 외부 지자체·업체 연동을 위한 API 개방 계획
-- **웹 배포** — 개인 도메인(`codedbyjun.dev/bingo`)에서 서비스 중
+- **실시간 적재량 모니터링** : 쓰레기통별 적재량 추이를 그래프로 시각화
+- **만적 시점 예측** : RandomForest 기반 만적 여부 분류(정확도 99.57%) 및 만적까지 남은 시간 예측(MAE 1.13h)
+- **수거 경로 최적화** : 수거가 필요한 쓰레기통 기준 최적 경로 및 턴바이턴 안내
+- **수거 이벤트 자동 감지** : 적재량 급락 패턴으로 수거 완료를 자동 기록
+- **작업자 관리** : 작업자 회원가입 및 정보 관리
 
----
+<br>
 
-## 기술 스택
+## 스크린샷
 
-### 하드웨어
-| 구성요소 | 부품 | 인터페이스 |
-|---|---|---|
-| 적재량 센서 | HC-SR04 초음파 센서 | Arduino |
-| 센서 노드 | Arduino | - |
-| 서버 | Raspberry Pi | - |
-
-### 백엔드 / AI
-| 영역 | 기술 |
+| 대시보드 | 수거 경로 안내 |
 |---|---|
-| API 서버 | Spring Boot (Gradle), context-path `/bingo` |
-| AI 추론 서버 | FastAPI, Python |
-| 예측 모델 | RandomForestClassifier / RandomForestRegressor (scikit-learn) |
-| 경로 최적화 | Kakao Mobility API |
-| 데이터베이스 | MariaDB |
-| 웹 서버 | Nginx (리버스 프록시) |
-| 배포 | systemd (`ecolink-spring`), Raspberry Pi 홈서버 |
+| ![dashboard](docs/images/dashboard.jpg) | ![route](docs/images/route.jpg) |
 
-### 프론트엔드
-- Thymeleaf
-- Vanilla JS (`dashboard.js`)
-- Chart.js 기반 실시간 데이터 시각화
+<br>
 
----
+## 개선 계획
 
-## 프로젝트 구조
+- 비밀번호를 `BCryptPasswordEncoder`로 암호화하여 저장
+- `RuntimeException` 대신 커스텀 예외와 `@RestControllerAdvice`로 예외 처리 및 에러 응답 통일
+- 엔티티를 직접 반환하지 않고 응답 DTO로 변환하여 API 스펙과 엔티티 분리
+- 요청 DTO에 `@Valid` 기반 입력값 검증 추가
+- CORS 허용 Origin을 서비스 도메인으로 제한
 
-```
-backend-spring/
-├── src/
-│   └── main/
-│       ├── java/               # Spring Boot 컨트롤러 · 서비스 · 엔티티
-│       └── resources/
-│           ├── static/         # trend.html, route.html, trashcan.html, prediction.html
-│           ├── static/js/      # dashboard.js
-│           └── application.properties.example
-├── build.gradle
-└── settings.gradle
+<br>
+
+## 실행 방법
+
+```bash
+cd backend-spring
+cp src/main/resources/application.properties.example src/main/resources/application.properties
+./gradlew bootRun
 ```
 
-```
-bingo_ai/                       # (별도 저장 · 서버 배포)
-├── main.py                     # FastAPI 서버
-├── train.py                    # 분류 모델 학습
-├── train_regression.py         # 회귀 모델 학습
-├── .env                        # DB 접속 정보 (Git 제외)
-└── venv/
-```
+실행 전 `DB_PASSWORD`, `KAKAO_MAP_KEY`, `KAKAO_REST_API_KEY` 환경변수를 설정해야 합니다.
 
----
+<br>
 
-## 라이선스
+## 팀 구성
 
-이 프로젝트는 한국폴리텍대학 벤처창업아이템 경진대회 출품 및 팀 학습 목적으로 제작되었습니다.
+전영준(팀장, AI · 프론트엔드), 허찬(백엔드), 강대웅, 박승국
