@@ -1,5 +1,9 @@
 # ♻️ EcoLink BinGo
 
+> 📌 **포트폴리오용 저장소입니다.**
+> 4인 팀 프로젝트 [qwer1234qwe123/Eco_Link](https://github.com/qwer1234qwe123/Eco_Link)의 사본이며, 커밋 기록은 원본 그대로 유지하고 비밀번호·API 키 등 민감 정보만 제거했습니다.
+
+
 **IoT/AI 기반 스마트 쓰레기통 수거 최적화 시스템**
 
 라즈베리파이와 초음파 센서로 쓰레기통 적재량을 실시간 수집하고, 위치 특화 자기학습 AI 모델로 수거 시점을 예측하여 최적 수거 경로를 안내하는 팀 프로젝트입니다. 한국폴리텍대학 벤처창업아이템 경진대회 출품을 목표로 개발 중입니다.
@@ -27,6 +31,32 @@
 - **팀 구성**: 전영준(팀장 · AI/프론트엔드), 강대웅, 박승국, 허찬
 - **지도교수**: 고호정
 - **경진대회**: 한국폴리텍대학 벤처창업아이템 경진대회
+
+---
+
+## 🙋 담당 역할 (허찬)
+
+> ✏️ 아래 내용은 커밋 기록을 바탕으로 작성한 초안입니다. 실제 담당 내용에 맞게 수정하세요.
+
+- **백엔드 기본 구조 설계** — 엔티티 · 리포지터리 · 서비스 · 컨트롤러 계층 구조 작성
+- **DB 스키마 / 테스트 데이터** — `sql/` 테이블 생성 및 테스트 데이터 스크립트 작성
+- **도메인 서버 연동** — 배포 서버 DB 연동 및 삽입 · 삭제 테스트
+- **회원가입 API** — Worker 엔티티를 `users` 테이블에 매핑, 회원가입 API 구현
+- **작업자(Worker) CRUD API** — 작업자 등록 · 조회 · 수정 · 삭제 API 구현 및 Postman 테스트
+- **프론트엔드 연동** — 프론트엔드 파일과 백엔드 연동
+
+> 회원가입 · 작업자 CRUD API 작업은 [`heochan`](../../tree/heochan) 브랜치에서 확인할 수 있습니다.
+
+---
+
+## ⚙️ 로컬 실행 방법
+
+```bash
+cd backend-spring
+cp src/main/resources/application.properties.example src/main/resources/application.properties
+```
+
+`DB_PASSWORD`, `KAKAO_MAP_KEY`, `KAKAO_REST_API_KEY` 환경변수를 설정한 뒤 `./gradlew bootRun` 으로 실행합니다.
 
 ---
 
@@ -118,7 +148,7 @@ backend-spring/
 │       └── resources/
 │           ├── static/         # trend.html, route.html, trashcan.html, prediction.html
 │           ├── static/js/      # dashboard.js
-│           └── application.properties
+│           └── application.properties.example
 ├── build.gradle
 └── settings.gradle
 ```

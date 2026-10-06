@@ -27,3 +27,27 @@ Thumbs.db
 .env
 *.pkl
 *.csv
+# Eclipse / STS project files
+.project
+.classpath
+.settings/
+
+# IntelliJ
+.idea/
+*.iml
+
+# Secrets / local config
+**/application.properties
+application-local.properties
+.env
+*.env
+*.p12
+*.jks
+*.pem
+
+# Claude Code (personal)
+.claude/settings.local.json
+
+# Logs
+*.log
+logs/
