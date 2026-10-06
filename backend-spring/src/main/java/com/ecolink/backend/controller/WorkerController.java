@@ -1,7 +1,7 @@
 package com.ecolink.backend.controller;
 
 import com.ecolink.backend.dto.SignUpRequest;
-import com.ecolink.backend.entity.Worker;
+import com.ecolink.backend.dto.WorkerResponse;
 import com.ecolink.backend.service.WorkerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,13 +16,15 @@ public class WorkerController {
     private final WorkerService workerService;
 
     @GetMapping
-    public ResponseEntity<List<Worker>> findAll() {
-        return ResponseEntity.ok(workerService.findAll());
+    public ResponseEntity<List<WorkerResponse>> findAll() {
+        return ResponseEntity.ok(workerService.findAll().stream()
+                .map(WorkerResponse::from)
+                .toList());
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Worker> findById(@PathVariable Long id) {
-        return ResponseEntity.ok(workerService.findById(id));
+    public ResponseEntity<WorkerResponse> findById(@PathVariable Long id) {
+        return ResponseEntity.ok(WorkerResponse.from(workerService.findById(id)));
     }
 
     @PostMapping

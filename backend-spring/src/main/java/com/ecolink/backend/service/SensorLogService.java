@@ -6,6 +6,7 @@ import com.ecolink.backend.entity.TrashCan;
 import com.ecolink.backend.repository.EmptyHistoryRepository;
 import com.ecolink.backend.repository.SensorLogRepository;
 import com.ecolink.backend.repository.TrashCanRepository;
+import com.ecolink.backend.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -30,7 +31,7 @@ public class SensorLogService {
 
     public void save(Long canId, Integer fillLevel, Integer batteryLevel) {
         TrashCan trashCan = trashCanRepository.findById(canId)
-                .orElseThrow(() -> new RuntimeException("쓰레기통을 찾을 수 없습니다. id: " + canId));
+                .orElseThrow(() -> new NotFoundException("쓰레기통을 찾을 수 없습니다. id: " + canId));
 
         // ── 수거 감지 로직 ──
         List<SensorLog> recentLogs = sensorLogRepository

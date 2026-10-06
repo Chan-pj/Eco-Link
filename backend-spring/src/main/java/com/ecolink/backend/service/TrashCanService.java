@@ -4,6 +4,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.ecolink.backend.dto.TrashCanRequest;
 import com.ecolink.backend.entity.TrashCan;
 import com.ecolink.backend.repository.TrashCanRepository;
+import com.ecolink.backend.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -20,7 +21,7 @@ public class TrashCanService {
 
     public TrashCan findById(Long id) {
         return trashCanRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("쓰레기통을 찾을 수 없습니다. id: " + id));
+                .orElseThrow(() -> new NotFoundException("쓰레기통을 찾을 수 없습니다. id: " + id));
     }
 
     // 추가

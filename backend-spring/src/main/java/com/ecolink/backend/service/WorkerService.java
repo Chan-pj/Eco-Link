@@ -3,6 +3,7 @@ package com.ecolink.backend.service;
 import com.ecolink.backend.dto.SignUpRequest;
 import com.ecolink.backend.entity.Worker;
 import com.ecolink.backend.repository.WorkerRepository;
+import com.ecolink.backend.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -19,7 +20,7 @@ public class WorkerService {
 
     public Worker findById(Long id) {
         return workerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("작업자를 찾을 수 없습니다. id: " + id));
+                .orElseThrow(() -> new NotFoundException("작업자를 찾을 수 없습니다. id: " + id));
     }
 
     public void signUp(SignUpRequest request) {
@@ -33,14 +34,14 @@ public class WorkerService {
 
     public void update(Long id, SignUpRequest request) {
         Worker worker = workerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("작업자를 찾을 수 없습니다. id: " + id));
+                .orElseThrow(() -> new NotFoundException("작업자를 찾을 수 없습니다. id: " + id));
         worker.update(request.getUsername(), request.getPassword(), request.getVehicleNumber());
         workerRepository.save(worker);
     }
 
     public void delete(Long id) {
         workerRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("작업자를 찾을 수 없습니다. id: " + id));
+                .orElseThrow(() -> new NotFoundException("작업자를 찾을 수 없습니다. id: " + id));
         workerRepository.deleteById(id);
     }
 }

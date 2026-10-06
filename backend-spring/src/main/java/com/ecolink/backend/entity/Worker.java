@@ -41,7 +41,10 @@ public class Worker {
 
     public void update(String username, String password, String vehicleNumber) {
         this.username = username;
-        this.password = password;
+        // 비밀번호를 비워서 보내면 기존 비밀번호를 유지합니다.
+        if (password != null && !password.isBlank()) {
+            this.password = password;
+        }
         this.vehicleNumber = vehicleNumber;
     }
 }

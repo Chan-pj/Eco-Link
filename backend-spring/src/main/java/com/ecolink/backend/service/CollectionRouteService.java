@@ -2,6 +2,7 @@ package com.ecolink.backend.service;
 
 import com.ecolink.backend.entity.CollectionRoute;
 import com.ecolink.backend.repository.CollectionRouteRepository;
+import com.ecolink.backend.exception.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
@@ -22,6 +23,6 @@ public class CollectionRouteService {
 
     public CollectionRoute findById(Long id) {
         return collectionRouteRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("수거 경로를 찾을 수 없습니다. id: " + id));
+                .orElseThrow(() -> new NotFoundException("수거 경로를 찾을 수 없습니다. id: " + id));
     }
 }

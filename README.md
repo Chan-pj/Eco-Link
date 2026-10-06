@@ -66,11 +66,20 @@ IoT 센서 기반 스마트 쓰레기통 적재량 모니터링 및 수거 경�
 ### 5. 배포 서버 DB 연동
 - 도메인 서버의 DB와 Spring Boot 애플리케이션을 연동하고, 데이터 삽입 · 삭제를 테스트했습니다.
 
+### 6. 리팩터링 및 테스트
+- **응답 DTO 분리** : 작업자 조회 API가 엔티티를 그대로 반환해 비밀번호가 응답에 노출되던 문제를 `WorkerResponse` DTO로 분리해 해결했습니다.
+- **예외 처리 통일** : `RuntimeException`으로 인해 500으로 응답하던 조회 실패를 커스텀 예외(`NotFoundException`)와 `@RestControllerAdvice`로 처리해 **404와 에러 메시지**를 반환하도록 개선했습니다.
+- **수정 API 버그 수정** : 비밀번호를 비우고 작업자 정보를 수정하면 `null`이 저장되어 오류가 나던 문제를, 빈 값일 때 기존 비밀번호를 유지하도록 수정했습니다.
+- **테스트 코드 작성** : `MockMvc` 기반 통합 테스트로 비밀번호 비노출, 404 응답, 비밀번호 유지 동작을 검증했습니다. 테스트는 H2 인메모리 DB로 실행되어 외부 DB 없이 동작합니다.
+
 ### 주요 코드
 | 구분 | 파일 |
 |---|---|
 | 작업자 API | [WorkerController.java](https://github.com/Chan-pj/Eco-Link/blob/heochan/backend-spring/src/main/java/com/ecolink/backend/controller/WorkerController.java) · [WorkerService.java](https://github.com/Chan-pj/Eco-Link/blob/heochan/backend-spring/src/main/java/com/ecolink/backend/service/WorkerService.java) |
 | 엔티티 | [Worker.java](https://github.com/Chan-pj/Eco-Link/blob/heochan/backend-spring/src/main/java/com/ecolink/backend/entity/Worker.java) · [CollectionHistory.java](https://github.com/Chan-pj/Eco-Link/blob/heochan/backend-spring/src/main/java/com/ecolink/backend/entity/CollectionHistory.java) · [CollectionRoute.java](https://github.com/Chan-pj/Eco-Link/blob/heochan/backend-spring/src/main/java/com/ecolink/backend/entity/CollectionRoute.java) |
+| 예외 처리 | [GlobalExceptionHandler.java](https://github.com/Chan-pj/Eco-Link/blob/main/backend-spring/src/main/java/com/ecolink/backend/exception/GlobalExceptionHandler.java) |
+| 응답 DTO | [WorkerResponse.java](https://github.com/Chan-pj/Eco-Link/blob/main/backend-spring/src/main/java/com/ecolink/backend/dto/WorkerResponse.java) |
+| 테스트 | [WorkerControllerTest.java](https://github.com/Chan-pj/Eco-Link/blob/main/backend-spring/src/test/java/com/ecolink/backend/WorkerControllerTest.java) |
 | 요청 DTO | [SignUpRequest.java](https://github.com/Chan-pj/Eco-Link/blob/heochan/backend-spring/src/main/java/com/ecolink/backend/dto/SignUpRequest.java) |
 | 설정 | [CorsConfig.java](https://github.com/Chan-pj/Eco-Link/blob/heochan/backend-spring/src/main/java/com/ecolink/backend/config/CorsConfig.java) |
 | DB 스키마 | [schema.sql](https://github.com/Chan-pj/Eco-Link/blob/heochan/backend-spring/sql/schema.sql) |
@@ -222,8 +231,6 @@ flowchart LR
 ## 개선 계획
 
 - 비밀번호를 `BCryptPasswordEncoder`로 암호화하여 저장
-- `RuntimeException` 대신 커스텀 예외와 `@RestControllerAdvice`로 예외 처리 및 에러 응답 통일
-- 엔티티를 직접 반환하지 않고 응답 DTO로 변환하여 API 스펙과 엔티티 분리 (작업자 조회 시 비밀번호 노출 방지)
 - 요청 DTO에 `@Valid` 기반 입력값 검증 추가
 - CORS 허용 Origin을 서비스 도메인으로 제한
 
