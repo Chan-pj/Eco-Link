@@ -81,7 +81,7 @@ IoT 센서 기반 스마트 쓰레기통 적재량 모니터링 및 수거 경�
 | 테스트 | [WorkerControllerTest.java](https://github.com/Chan-pj/Eco-Link/blob/main/backend-spring/src/test/java/com/ecolink/backend/WorkerControllerTest.java) |
 | 요청 DTO | [SignUpRequest.java](https://github.com/Chan-pj/Eco-Link/blob/heochan/backend-spring/src/main/java/com/ecolink/backend/dto/SignUpRequest.java) |
 | 설정 | [CorsConfig.java](https://github.com/Chan-pj/Eco-Link/blob/heochan/backend-spring/src/main/java/com/ecolink/backend/config/CorsConfig.java) |
-| DB 스키마 | [schema.sql](https://github.com/Chan-pj/Eco-Link/blob/heochan/backend-spring/sql/schema.sql) |
+| DB 스키마 | [schema.sql](https://github.com/Chan-pj/Eco-Link/blob/main/backend-spring/sql/schema.sql) |
 
 <br>
 
