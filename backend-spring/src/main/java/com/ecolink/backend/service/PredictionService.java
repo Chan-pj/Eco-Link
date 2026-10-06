@@ -45,7 +45,7 @@ public class PredictionService {
                     .locName(locName)
                     .needsCollection(false)
                     .confidence(0.0)
-                    .predictedStatus("정상") // ← 수정
+                    .predictedStatus("정상")
                     .message("센서 데이터가 없습니다.")
                     .build();
         }
@@ -81,7 +81,7 @@ public class PredictionService {
                     .locName(locName)
                     .needsCollection(false)
                     .confidence(0.0)
-                    .predictedStatus("정상") // ← 수정
+                    .predictedStatus("정상")
                     .message("AI 서버 연결에 실패했습니다.")
                     .build();
         }

@@ -9,7 +9,6 @@ IoT 센서 기반 스마트 쓰레기통 적재량 모니터링 및 수거 경�
 | 개발 기간 | 2026.03 ~ |
 | 개발 인원 | 4명 |
 | 담당 역할 | **백엔드 개발** (Spring Boot REST API, JPA 엔티티 설계, DB 스키마 설계, 서버 DB 연동) |
-| 서비스 주소 | https://codedbyjun.dev/bingo |
 | 배포 | Raspberry Pi 홈서버 + Nginx 리버스 프록시 |
 
 <br>

@@ -30,9 +30,9 @@ public class PredictResponse {
     @JsonProperty("message")
     private String message;
 
-    @JsonProperty("hours_until_full") // ← 추가
+    @JsonProperty("hours_until_full")
     private Double hoursUntilFull;
 
-    @JsonProperty("predicted_full_time") // ← 추가
+    @JsonProperty("predicted_full_time")
     private String predictedFullTime;
 }

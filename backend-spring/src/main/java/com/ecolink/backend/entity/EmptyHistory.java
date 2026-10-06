@@ -18,12 +18,12 @@ public class EmptyHistory {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JsonIgnore // ← Lazy 프록시 직렬화 방지
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "can_id", nullable = false)
     private TrashCan trashCan;
 
-    @JsonProperty("canId") // ← canId만 노출
+    @JsonProperty("canId")
     public Long getCanId() {
         return trashCan != null ? trashCan.getId() : null;
     }

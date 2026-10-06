@@ -7,7 +7,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
-@Table(name = "users") // ← 변경
+@Table(name = "users")
 @Getter
 @NoArgsConstructor
 public class Worker {
@@ -23,7 +23,7 @@ public class Worker {
     private String password;
 
     @Column(name = "grade")
-    private Integer grade; // ← 추가
+    private Integer grade;
 
     @Column(name = "vehicle_number", length = 20)
     private String vehicleNumber;
